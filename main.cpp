@@ -209,32 +209,32 @@ RadioTransmitter::TransmitterControlInterface::~TransmitterControlInterface()
 
 void RadioTransmitter::enableVoiceMemoryUnit(bool enableVoiceMemoryUnit)
 {
-       std::cout << "Voice Memory Unit Enabled: " << enableVoiceMemoryUnit << std::endl;
+    std::cout << "Voice Memory Unit Enabled: " << enableVoiceMemoryUnit << std::endl;
 }
  
 void RadioTransmitter::enableAntennaTunner(bool enableAntennaTunner)
 {
-       std::cout << "Antenna Tunner Enabled: " << enableAntennaTunner << std::endl;
+    std::cout << "Antenna Tunner Enabled: " << enableAntennaTunner << std::endl;
 }
 
 void RadioTransmitter::enableDataManagementUnit(bool enableDataManagementUnit)
 {
-       std::cout << "Data Management Unit Enabled: " << enableDataManagementUnit << std::endl;
+    std::cout << "Data Management Unit Enabled: " << enableDataManagementUnit << std::endl;
 }
 
 void RadioTransmitter::TransmitterControlInterface::setMode(std::string modeSelection)
 {
-       std::cout << "Tx Mode has been set to: " << modeSelection << std::endl;
+    std::cout << "Tx Mode has been set to: " << modeSelection << std::endl;
 }
 
 void RadioTransmitter::TransmitterControlInterface::txEnabled(bool txEnabled)
 {
-       std::cout << "Tx Enabled: " << txEnabled << std::endl;
+    std::cout << "Tx Enabled: " << txEnabled << std::endl;
 }
 
 void RadioTransmitter::TransmitterControlInterface::enableKeyer(bool keyerEnabled)
 {
-       std::cout << "Keyer Enabled: " << keyerEnabled << std::endl;
+    std::cout << "Keyer Enabled: " << keyerEnabled << std::endl;
 }
 
 
@@ -293,7 +293,13 @@ struct Transciever
     RadioTransmitter tx;
     PowerSupply psu; 
 
-    void powerOn(bool);
+    enum PowerState: int
+    {
+       Off, 
+       On
+    } powerState;
+
+    void setPowerState(PowerState newState);
     void enableTransmitter();
 };
 
@@ -307,9 +313,10 @@ Transciever::~Transciever()
     std::cout << "Transciever has been constructed." << std::endl;
 }
 
-void Transciever::powerOn(bool state)
+void Transciever::setPowerState(PowerState newState)
 {
-    this->psu.enable(state);
+    this->powerState = newState;
+    std::cout << "Transciever PowerState has changed to: "  << newState << std::endl;
 }
 
 void Transciever::enableTransmitter()
@@ -346,7 +353,7 @@ AmatureRadioStation::~AmatureRadioStation()
 
 void AmatureRadioStation::powerDownStation()
 {
-    this->primaryTransciever.powerOn(false);
+    this->primaryTransciever.setPowerState(Transciever::PowerState::Off);
     this->primaryPowerSupply.enable(false);
 }
 
@@ -391,11 +398,11 @@ int main()
 
     PowerSupply primaryPowerSupply;
     primaryPowerSupply.enable(true);
-    primaryPowerSupply.setDisplayMetric("SWR");
+    primaryPowerSupply.setDisplayMetric("Amps");
     primaryPowerSupply.setInputVoltage(110);
 
     Transciever primaryTransciever;
-    primaryTransciever.powerOn(true);
+    primaryTransciever.setPowerState(Transciever::PowerState::On);
     primaryTransciever.enableTransmitter();
 
     AmatureRadioStation primaryAmatureRadioStation;
