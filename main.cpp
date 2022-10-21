@@ -72,6 +72,7 @@ write 3 UDTs below that EACH have:
  */
 
 #include <iostream>
+#include <time.h>
 
 /*
  copied UDT 1:
@@ -83,12 +84,12 @@ struct RadioReceiver
     RadioReceiver();
     ~RadioReceiver(); 
 
-    float afOutputPower, selectivity, frequencyStability, tunningStep;
-    std::string demodulationMode; 
+    float afOutputPower, frequency, frequencyStability, tunningStep;
+    std::string demodulationMode = "FM"; 
 
-    void setFrequency(float frequency);
-    void setAudioFrequencyGain(int audioFrequencyGain);
-    void setRfGain(int rfGain);
+    void setFrequency(float);
+    void setAudioFrequencyGain(int);
+    void setRfGain(int);
 
     struct RecieverControlInterface 
     {
@@ -98,15 +99,24 @@ struct RadioReceiver
 
         int antennaInput;
         float afGain, rfGain;
-        bool automaticGainControl, dspEnabled;
+        bool automaticGainControl = true; 
+        bool dspEnabled = true;
        
-        void setMode(std::string mode);
-        void selectAntennaInput(int antennaInputSelection);
-        void setVolume(float volume);
+        enum AntennaInputSwitch: int
+        {
+            one,
+            two,
+            three,
+            END_OF_LIST
+        };
+
+        void setMode(std::string);
+        void selectAntennaInput(AntennaInputSwitch);
+        void setVolume(float);
     } recieverControlInterface;
 };
 
-RadioReceiver::RadioReceiver() : afOutputPower(100), selectivity(-60), frequencyStability(0.5), tunningStep(10), demodulationMode("SSB")
+RadioReceiver::RadioReceiver() : afOutputPower(100), frequency(7000), frequencyStability(0.5), tunningStep(100)
 {
     std::cout << "RadioReceiver has been constructed." << std::endl;
 }
@@ -116,7 +126,7 @@ RadioReceiver::~RadioReceiver()
     std::cout << "RadioReceiver has been deconstructed." << std::endl;
 }
 
-RadioReceiver::RecieverControlInterface::RecieverControlInterface() : antennaInput(50), afGain(2), rfGain(5), automaticGainControl(true), dspEnabled(true)
+RadioReceiver::RecieverControlInterface::RecieverControlInterface() : antennaInput(50), afGain(2), rfGain(5)
 {
     std::cout << "RecieverControlInterface has been constructed." << std::endl;
 }
@@ -126,9 +136,29 @@ RadioReceiver::RecieverControlInterface::~RecieverControlInterface()
     std::cout << "RecieverControlInterface has been deconstructed." << std::endl;
 }
 
-void RadioReceiver::setFrequency(float frequency)
+void RadioReceiver::setFrequency(float newFrequency)
 {
-    std::cout << "Frequency has been updated: " << frequency << std::endl;
+    if (this->frequency < newFrequency)
+    {
+        while(this->frequency < newFrequency)
+        {
+            this->frequency += this->tunningStep;
+            std::cout << "Frequency is being adjusted up: " << this->frequency << std::endl; 
+        }
+    }
+    else if (this->frequency > newFrequency)
+    {
+        while(this->frequency > newFrequency)
+        {
+            this->frequency -= this->tunningStep;
+            std::cout << "Frequency is being adjusted down: " << this->frequency << std::endl; 
+        }
+    }
+    else
+    {
+        std::cout << "Frequency is already at desired value." << std::endl;    
+    }
+    std::cout << "Frequency has been set to the desired value: " << newFrequency << std::endl;
 }
 
 void RadioReceiver::setAudioFrequencyGain(int audioFrequencyGain)
@@ -146,9 +176,21 @@ void RadioReceiver::RecieverControlInterface::setMode(std::string mode)
     std::cout << "Mode has been updated: " << mode << std::endl;
 }
 
-void RadioReceiver::RecieverControlInterface::selectAntennaInput(int antennaInputSelection)
+void RadioReceiver::RecieverControlInterface::selectAntennaInput(AntennaInputSwitch antennaInputSelection)
 {
-    std::cout << "Antenna Input has been updated: " << antennaInputSelection << std::endl;
+    for(size_t i = 0; i < static_cast<size_t>(AntennaInputSwitch::END_OF_LIST); i++)
+    {
+        if(antennaInputSelection == static_cast<AntennaInputSwitch>(i))
+        {
+              this->antennaInput = static_cast<AntennaInputSwitch>(i);
+              std::cout << "Antenna Configured: " << this->antennaInput << std::endl;
+        }
+        else
+        {
+              this->antennaInput = static_cast<AntennaInputSwitch>(i);
+              std::cout << "Antenna Selected: " << this->antennaInput << std::endl;
+        }
+    }
 }
 
 void RadioReceiver::RecieverControlInterface::setVolume(float volume)
@@ -165,12 +207,14 @@ struct RadioTransmitter
     RadioTransmitter();
     ~RadioTransmitter();
 
-    float maxOutputLevel, minOutputLevel, antennaImpedance, microphoneImpedance;
-    bool monitorEnabled;  
+    float maxOutputLevel, minOutputLevel;
+    float antennaImpedance=50.f;
+    float microphoneImpedance=4.f;
+    bool antennaTunnerStatus=true;  
 
-    void enableVoiceMemoryUnit(bool enableVoiceMemoryUnit);
-    void enableAntennaTunner(bool enableAntennaTunner);
-    void enableDataManagementUnit(bool enableDataManagementUnit);
+    void toggleVoiceMemoryUnit();
+    void toggleAntennaTunner();
+    void toggleDataManagementUnit();
 
     struct TransmitterControlInterface 
     {
@@ -178,8 +222,9 @@ struct RadioTransmitter
         ~TransmitterControlInterface();
 
         int antennaSelection, vfoSelection;
-        float frequency, microphoneGain;
-        std::string mode;
+        float frequency = 7.000f;
+        float microphoneGain = 2.f;
+        std::string mode = "AM";
 
         void setMode(std::string modeSelection);
         void txEnabled(bool txEnabled);
@@ -187,7 +232,7 @@ struct RadioTransmitter
     } transmitterControlInterface;
 };
 
-RadioTransmitter::RadioTransmitter() : maxOutputLevel(100.f), minOutputLevel(5.f), antennaImpedance(50.f), microphoneImpedance(4.f), monitorEnabled(true)
+RadioTransmitter::RadioTransmitter() : maxOutputLevel(100.f), minOutputLevel(5.f)
 {
     std::cout << "RadioTransmitter has been constructed." << std::endl;
 }
@@ -197,7 +242,7 @@ RadioTransmitter::~RadioTransmitter()
     std::cout << "RadioTransmitter has been deconstructed." << std::endl;
 }
 
-RadioTransmitter::TransmitterControlInterface::TransmitterControlInterface() : antennaSelection(1), vfoSelection(2), frequency(7.100f), microphoneGain(2.f), mode("AM")
+RadioTransmitter::TransmitterControlInterface::TransmitterControlInterface() : antennaSelection(1), vfoSelection(2)
 {
     std::cout << "TransmitterControlInterface has been constructed." << std::endl;
 }
@@ -207,19 +252,34 @@ RadioTransmitter::TransmitterControlInterface::~TransmitterControlInterface()
     std::cout << "TransmitterControlInterface has been deconstructed." << std::endl;
 }
 
-void RadioTransmitter::enableVoiceMemoryUnit(bool enableVoiceMemoryUnit)
+void RadioTransmitter::toggleVoiceMemoryUnit()
 {
-    std::cout << "Voice Memory Unit Enabled: " << enableVoiceMemoryUnit << std::endl;
+    std::cout << "Voice Memory Unit Enabled: " << std::endl;
 }
  
-void RadioTransmitter::enableAntennaTunner(bool enableAntennaTunner)
+void RadioTransmitter::toggleAntennaTunner()
 {
-    std::cout << "Antenna Tunner Enabled: " << enableAntennaTunner << std::endl;
+    // simulate faulty switch 
+    srand(static_cast<unsigned int>(time(0)));
+    while(rand()%100 < 50)
+    {
+       std::cout << "Attempting to enable Antenna Tunner" << std::endl;
+       if(antennaTunnerStatus == false)
+       {
+           antennaTunnerStatus = true;
+       }
+       else
+       {
+           antennaTunnerStatus = true; 
+       }
+    }
+    
+    std::cout << "Antenna Tunner Status: " << antennaTunnerStatus << std::endl;
 }
 
-void RadioTransmitter::enableDataManagementUnit(bool enableDataManagementUnit)
+void RadioTransmitter::toggleDataManagementUnit()
 {
-    std::cout << "Data Management Unit Enabled: " << enableDataManagementUnit << std::endl;
+    std::cout << "Data Management Unit Enabled: " << std::endl;
 }
 
 void RadioTransmitter::TransmitterControlInterface::setMode(std::string modeSelection)
@@ -246,15 +306,17 @@ struct PowerSupply
     PowerSupply();
     ~PowerSupply();
 
-    float inputPower, outputPower, outputCurrentMax;
-    std::string inputConnectorType, outputConnectorType;
+    int inputPower, outputPower;
+    float outputCurrentMax;
+    std::string inputConnectorType = "IEC", 
+    outputConnectorType = "Binding Post";
 
-    void enable(bool powerState);
-    void setDisplayMetric(std::string displayMetric);
-    void setInputVoltage(int inputVoltage);
+    void enable(bool);
+    void setDisplayMetric(std::string);
+    void setOutputPower(int);
 };
 
-PowerSupply::PowerSupply()
+PowerSupply::PowerSupply() : inputPower(110), outputPower(24), outputCurrentMax(20)
 {
     std::cout << "PowerSupply has been constructed." << std::endl;
 }
@@ -274,9 +336,13 @@ void PowerSupply::setDisplayMetric(std::string displayMetric)
     std::cout << "PowerSupply Display Metric: " << displayMetric << std::endl;
 }
 
-void PowerSupply::setInputVoltage(int inputVoltage)
+void PowerSupply::setOutputPower(int newOutputPower)
 {
-    std::cout << "PowerSupply Input Voltage: " << inputVoltage << std::endl;
+    while(this->outputPower < newOutputPower)
+    {
+       this->outputPower += 1;
+    }
+    std::cout << "PowerSupply Output Power: " << this->outputPower << std::endl;
 }
 
 /*
@@ -296,14 +362,15 @@ struct Transciever
     enum PowerState: int
     {
        Off, 
-       On
+       On,
+       END_OF_LIST
     } powerState;
 
-    void setPowerState(PowerState newState);
+    void setPowerState(PowerState);
     void enableTransmitter();
 };
 
-Transciever::Transciever()
+Transciever::Transciever(): powerState(Transciever::PowerState::Off)
 {
     std::cout << "Transciever has been constructed." << std::endl;
 }
@@ -315,8 +382,19 @@ Transciever::~Transciever()
 
 void Transciever::setPowerState(PowerState newState)
 {
-    this->powerState = newState;
-    std::cout << "Transciever PowerState has changed to: "  << newState << std::endl;
+    for(size_t i = 0; i < static_cast<size_t>(PowerState::END_OF_LIST); i++)
+    {
+        if(newState == static_cast<PowerState>(i))
+        {
+              this->powerState = static_cast<PowerState>(i);
+              std::cout << "Transciever Power: " << this->powerState << std::endl;
+        }
+        else
+        {
+              this->powerState = static_cast<PowerState>(i);
+              std::cout << "Toggling Transciever Power Switch" << std::endl;
+        }
+    }
 }
 
 void Transciever::enableTransmitter()
@@ -331,14 +409,14 @@ void Transciever::enableTransmitter()
 
 struct AmatureRadioStation
 {
-        AmatureRadioStation();
-        ~AmatureRadioStation();
+    AmatureRadioStation();
+    ~AmatureRadioStation();
 
-        Transciever primaryTransciever;
-        PowerSupply primaryPowerSupply;
+    Transciever primaryTransciever;
+    PowerSupply primaryPowerSupply;
 
-        void powerDownStation();
-        void displayPowerConsumption();
+    void powerDownStation();
+    void displayPowerConsumption();
 };
 
 AmatureRadioStation::AmatureRadioStation()
@@ -381,17 +459,17 @@ void AmatureRadioStation::displayPowerConsumption()
 int main()
 {
     RadioReceiver primaryReciever;
-    primaryReciever.setFrequency(7.100f);
+    primaryReciever.setFrequency(7300.f);
     primaryReciever.setAudioFrequencyGain(2);
     primaryReciever.setRfGain(5);
     primaryReciever.recieverControlInterface.setMode("FM");
-    primaryReciever.recieverControlInterface.selectAntennaInput(1);
+    primaryReciever.recieverControlInterface.selectAntennaInput(RadioReceiver::RecieverControlInterface::AntennaInputSwitch::three);
     primaryReciever.recieverControlInterface.setVolume(50);
 
     RadioTransmitter primaryTransmitter;
-    primaryTransmitter.enableVoiceMemoryUnit(false);
-    primaryTransmitter.enableAntennaTunner(true);
-    primaryTransmitter.enableDataManagementUnit(false);
+    primaryTransmitter.toggleVoiceMemoryUnit();
+    primaryTransmitter.toggleAntennaTunner();
+    primaryTransmitter.toggleDataManagementUnit();
     primaryTransmitter.transmitterControlInterface.setMode("USB");
     primaryTransmitter.transmitterControlInterface.txEnabled(false);
     primaryTransmitter.transmitterControlInterface.enableKeyer(false);
@@ -399,7 +477,7 @@ int main()
     PowerSupply primaryPowerSupply;
     primaryPowerSupply.enable(true);
     primaryPowerSupply.setDisplayMetric("Amps");
-    primaryPowerSupply.setInputVoltage(110);
+    primaryPowerSupply.setOutputPower(35);
 
     Transciever primaryTransciever;
     primaryTransciever.setPowerState(Transciever::PowerState::On);
