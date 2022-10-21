@@ -260,8 +260,8 @@ void RadioTransmitter::toggleVoiceMemoryUnit()
 void RadioTransmitter::toggleAntennaTunner()
 {
     // simulate faulty switch 
-    srand(static_cast<unsigned int>(time(0)));
-    while(rand()%100 < 50)
+    srand(static_cast<unsigned int>(time(nullptr)));
+    while(rand() % 100 < 50)
     {
        std::cout << "Attempting to enable Antenna Tunner" << std::endl;
        if(antennaTunnerStatus == false)
