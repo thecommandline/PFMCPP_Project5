@@ -266,15 +266,15 @@ void RadioTransmitter::toggleAntennaTunner()
     srand(0);
     while(rand() % 100 < 50)
     {
-       std::cout << "Attempting to enable Antenna Tunner" << std::endl;
-       if(antennaTunnerStatus == false)
-       {
-           antennaTunnerStatus = true;
-       }
-       else
-       {
-           antennaTunnerStatus = true; 
-       }
+        std::cout << "Attempting to enable Antenna Tunner" << std::endl;
+        if(antennaTunnerStatus == false)
+        {
+            antennaTunnerStatus = true;
+        }
+        else
+        {
+            antennaTunnerStatus = true; 
+        }
     }
     
     std::cout << "Antenna Tunner Status: " << antennaTunnerStatus << std::endl;
@@ -345,7 +345,7 @@ void PowerSupply::setOutputPower(int newOutputPower)
 {
     while(this->outputPower < newOutputPower)
     {
-       this->outputPower += 1;
+        this->outputPower += 1;
     }
     std::cout << "PowerSupply Output Power: " << this->outputPower << std::endl;
 }
@@ -366,9 +366,9 @@ struct Transciever
 
     enum class PowerState: int
     {
-       Off, 
-       On,
-       END_OF_LIST
+        Off, 
+        On,
+        END_OF_LIST
     } powerState;
 
     void setPowerState(PowerState);
@@ -440,8 +440,8 @@ AmatureRadioStation::~AmatureRadioStation()
 
 void AmatureRadioStation::powerDownStation()
 {
-   this->primaryTransciever.setPowerState(Transciever::PowerState::Off);
-   this->primaryPowerSupply.enable(false);
+    this->primaryTransciever.setPowerState(Transciever::PowerState::Off);
+    this->primaryPowerSupply.enable(false);
 }
 
 void AmatureRadioStation::displayPowerConsumption()
