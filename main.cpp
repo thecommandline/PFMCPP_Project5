@@ -369,7 +369,7 @@ struct Transciever
         Off, 
         On,
         END_OF_LIST
-    } powerState;
+    } powerState = PowerState::Off;
 
     void setPowerState(PowerState);
     void enableTransmitter();
