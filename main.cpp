@@ -81,7 +81,6 @@ namespace Example
 
 
 #include <iostream>
-#include <time.h>
 
 /*
  copied UDT 1:
@@ -100,18 +99,18 @@ struct RadioReceiver
     void setAudioFrequencyGain(int);
     void setRfGain(int);
 
-    struct RecieverControlInterface FIXME
+    struct ReceiverControlInterface
     {
 
-        RecieverControlInterface(); FIXME
-        ~RecieverControlInterface(); FIXME
+        ReceiverControlInterface();
+        ~ReceiverControlInterface();
 
         int antennaInput;
         float afGain, rfGain;
         bool automaticGainControl = true; 
         bool dspEnabled = true;
        
-        enum AntennaInputSwitch: int FIXME
+        enum class AntennaInputSwitch: int
         {
             one,
             two,
@@ -120,9 +119,9 @@ struct RadioReceiver
         };
 
         void setMode(std::string);
-        void selectAntennaInput(AntennaInputSwitch);
+        void selectAntennaInput(int);
         void setVolume(float);
-    } recieverControlInterface;
+    } receiverControlInterface;
 };
 
 RadioReceiver::RadioReceiver() : afOutputPower(100), frequency(7000), frequencyStability(0.5), tunningStep(100)
@@ -135,14 +134,14 @@ RadioReceiver::~RadioReceiver()
     std::cout << "RadioReceiver has been deconstructed." << std::endl;
 }
 
-RadioReceiver::RecieverControlInterface::RecieverControlInterface() : antennaInput(50), afGain(2), rfGain(5)
+RadioReceiver::ReceiverControlInterface::ReceiverControlInterface() : antennaInput(50), afGain(2), rfGain(5)
 {
-    std::cout << "RecieverControlInterface has been constructed." << std::endl;
+    std::cout << "ReceiverControlInterface has been constructed." << std::endl;
 }
 
-RadioReceiver::RecieverControlInterface::~RecieverControlInterface()
+RadioReceiver::ReceiverControlInterface::~ReceiverControlInterface()
 {
-    std::cout << "RecieverControlInterface has been deconstructed." << std::endl;
+    std::cout << "ReceiverControlInterface has been deconstructed." << std::endl;
 }
 
 void RadioReceiver::setFrequency(float newFrequency)
@@ -163,10 +162,6 @@ void RadioReceiver::setFrequency(float newFrequency)
             std::cout << "Frequency is being adjusted down: " << this->frequency << std::endl; 
         }
     }
-    else
-    {
-        std::cout << "Frequency is already at desired value." << std::endl;    
-    }
     std::cout << "Frequency has been set to the desired value: " << newFrequency << std::endl;
 }
 
@@ -180,29 +175,25 @@ void RadioReceiver::setRfGain(int rfGain)
     std::cout << "RF gain has been updated: " << rfGain << std::endl;
 }
 
-void RadioReceiver::RecieverControlInterface::setMode(std::string mode)
+void RadioReceiver::ReceiverControlInterface::setMode(std::string mode)
 {
     std::cout << "Mode has been updated: " << mode << std::endl;
 }
 
-void RadioReceiver::RecieverControlInterface::selectAntennaInput(AntennaInputSwitch antennaInputSelection)
+void RadioReceiver::ReceiverControlInterface::selectAntennaInput(int antennaInputSelection)
 {
-    for(size_t i = 0; i < static_cast<size_t>(AntennaInputSwitch::END_OF_LIST); i++) FIXME
+    for(int i = 0; i < 3; i++)
     {
-        if(antennaInputSelection == static_cast<AntennaInputSwitch>(i)) FIXME
+        this->antennaInput = i + 1;
+        std::cout << "Antenna Switch Position: " << this->antennaInput << std::endl;
+        if(this->antennaInput == antennaInputSelection)
         {
-              this->antennaInput = static_cast<AntennaInputSwitch>(i); FIXME
-              std::cout << "Antenna Configured: " << this->antennaInput << std::endl;
-        }
-        else
-        {
-              this->antennaInput = static_cast<AntennaInputSwitch>(i); FIXME
-              std::cout << "Antenna Selected: " << this->antennaInput << std::endl;
+            break;
         }
     }
 }
 
-void RadioReceiver::RecieverControlInterface::setVolume(float volume)
+void RadioReceiver::ReceiverControlInterface::setVolume(float volume)
 {
     std::cout << "Volume has been updated: " << volume << std::endl;
 }
@@ -265,11 +256,14 @@ void RadioTransmitter::toggleVoiceMemoryUnit()
 {
     std::cout << "Voice Memory Unit Enabled: " << std::endl;
 }
- 
+
 void RadioTransmitter::toggleAntennaTunner()
 {
     // simulate faulty switch 
-    srand(static_cast<unsigned int>(time(nullptr)));
+    // unsigned int x; srand(x); would be BAD but it would work without casting.  
+    // getpid() also requires type casting :(
+
+    srand(0);
     while(rand() % 100 < 50)
     {
        std::cout << "Attempting to enable Antenna Tunner" << std::endl;
@@ -305,6 +299,8 @@ void RadioTransmitter::TransmitterControlInterface::enableKeyer(bool keyerEnable
 {
     std::cout << "Keyer Enabled: " << keyerEnabled << std::endl;
 }
+
+
 
 
 /*
@@ -359,7 +355,7 @@ void PowerSupply::setOutputPower(int newOutputPower)
  with 2 member functions
  */
 
-struct Transciever  FIXME
+struct Transciever
 {
     Transciever();
     ~Transciever();
@@ -368,7 +364,7 @@ struct Transciever  FIXME
     RadioTransmitter tx;
     PowerSupply psu; 
 
-    enum PowerState: int FIXME
+    enum class PowerState: int
     {
        Off, 
        On,
@@ -391,17 +387,21 @@ Transciever::~Transciever()
 
 void Transciever::setPowerState(PowerState newState)
 {
-    for(size_t i = 0; i < static_cast<size_t>(PowerState::END_OF_LIST); i++) FIXME
+    for(int i = 0; i<2; i++)
     {
-        if(newState == static_cast<PowerState>(i)) FIXME
+        if(i == 0)
         {
-              this->powerState = static_cast<PowerState>(i); FIXME
-              std::cout << "Transciever Power: " << this->powerState << std::endl;
+            this->powerState = Transciever::PowerState::Off;
+            std::cout << "Transciever is Powered Off" << std::endl;
         }
         else
         {
-              this->powerState = static_cast<PowerState>(i); FIXME
-              std::cout << "Toggling Transciever Power Switch" << std::endl;
+            this->powerState = Transciever::PowerState::On;
+            std::cout << "Transciever is Powered On" << std::endl;
+        }
+        if(this->powerState == newState)
+        {
+            break;
         }
     }
 }
@@ -440,8 +440,8 @@ AmatureRadioStation::~AmatureRadioStation()
 
 void AmatureRadioStation::powerDownStation()
 {
-    this->primaryTransciever.setPowerState(Transciever::PowerState::Off);
-    this->primaryPowerSupply.enable(false);
+   this->primaryTransciever.setPowerState(Transciever::PowerState::Off);
+   this->primaryPowerSupply.enable(false);
 }
 
 void AmatureRadioStation::displayPowerConsumption()
@@ -467,15 +467,21 @@ void AmatureRadioStation::displayPowerConsumption()
 #include <iostream>
 int main()
 {
-    RadioReceiver primaryReciever;
-    primaryReciever.setFrequency(7300.f);
-    primaryReciever.setAudioFrequencyGain(2);
-    primaryReciever.setRfGain(5);
-    primaryReciever.recieverControlInterface.setMode("FM");
-    primaryReciever.recieverControlInterface.selectAntennaInput(RadioReceiver::RecieverControlInterface::AntennaInputSwitch::three);
-    primaryReciever.recieverControlInterface.setVolume(50);
+    RadioReceiver primaryReceiver;
+    primaryReceiver.frequency = 7300.f;
+    std::cout << "Frequency has been set to the desired value: " << primaryReceiver.frequency << std::endl;
+    primaryReceiver.setFrequency(7300.f);
+    primaryReceiver.setAudioFrequencyGain(4);
+    primaryReceiver.setRfGain(5);
+    primaryReceiver.receiverControlInterface.setMode("FM");
+    primaryReceiver.receiverControlInterface.selectAntennaInput(3);
+    primaryReceiver.receiverControlInterface.setVolume(50);
 
     RadioTransmitter primaryTransmitter;
+    primaryTransmitter.antennaTunnerStatus = true;
+    std::cout << "Antenna Tunner Status: " << primaryTransmitter.antennaTunnerStatus << std::endl;
+    primaryTransmitter.antennaTunnerStatus = false;
+    primaryTransmitter.toggleAntennaTunner(); 
     primaryTransmitter.toggleVoiceMemoryUnit();
     primaryTransmitter.toggleAntennaTunner();
     primaryTransmitter.toggleDataManagementUnit();
@@ -486,15 +492,24 @@ int main()
     PowerSupply primaryPowerSupply;
     primaryPowerSupply.enable(true);
     primaryPowerSupply.setDisplayMetric("Amps");
-    primaryPowerSupply.setOutputPower(35);
+    primaryPowerSupply.outputPower = 24;
+    std::cout << "PowerSupply Output Power: " << primaryPowerSupply.outputPower << std::endl;
+    primaryPowerSupply.setOutputPower(24);
 
     Transciever primaryTransciever;
     primaryTransciever.setPowerState(Transciever::PowerState::On);
     primaryTransciever.enableTransmitter();
+    primaryTransciever.rx.frequency = 3000.f;
+    std::cout << "Frequency has been set to the desired value: " << primaryTransciever.rx.frequency << std::endl;
+    primaryTransciever.rx.setFrequency(3000.f);
+
 
     AmatureRadioStation primaryAmatureRadioStation;
     primaryAmatureRadioStation.powerDownStation();
     primaryAmatureRadioStation.displayPowerConsumption();
+    primaryAmatureRadioStation.primaryPowerSupply.outputPower = 12;
+    std::cout << "PowerSupply Output Power: " << primaryAmatureRadioStation.primaryPowerSupply.outputPower << std::endl;
+    primaryAmatureRadioStation.primaryPowerSupply.setOutputPower(12);
 
     std::cout << "good to go!" << std::endl;
 }
