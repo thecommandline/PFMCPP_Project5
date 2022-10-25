@@ -81,6 +81,7 @@ void Axe::aConstMemberFunction() const { }
 
 
 #include <iostream>
+#include "LeakedObjectDetector.h"
 
 /*
  copied UDT 1:
@@ -96,8 +97,8 @@ struct RadioReceiver
     std::string demodulationMode = "FM"; 
 
     void setFrequency(float);
-    void setAudioFrequencyGain(int);
-    void setRfGain(int);
+    void setAudioFrequencyGain(int) const;
+    void setRfGain(int) const; 
 
     struct ReceiverControlInterface
     {
@@ -118,10 +119,22 @@ struct RadioReceiver
             END_OF_LIST
         };
 
-        void setMode(std::string);
+        void setMode(std::string) const;
         void selectAntennaInput(int);
-        void setVolume(float);
+        void setVolume(float) const;
     } receiverControlInterface;
+
+    JUCE_LEAK_DETECTOR(RadioReceiver)
+};
+
+struct RadioReceiverWrapper
+{
+    RadioReceiverWrapper(RadioReceiver* ptr) : pointerToRadioReceiver(ptr) {}
+    ~RadioReceiverWrapper()
+    {
+        delete pointerToRadioReceiver;
+    }
+    RadioReceiver* pointerToRadioReceiver = nullptr;
 };
 
 RadioReceiver::RadioReceiver() : afOutputPower(100), frequency(7000), frequencyStability(0.5), tunningStep(100)
@@ -165,17 +178,17 @@ void RadioReceiver::setFrequency(float newFrequency)
     std::cout << "Frequency has been set to the desired value: " << newFrequency << std::endl;
 }
 
-void RadioReceiver::setAudioFrequencyGain(int audioFrequencyGain)
+void RadioReceiver::setAudioFrequencyGain(int audioFrequencyGain) const
 {
     std::cout << "AF gain has been updated: " << audioFrequencyGain << std::endl;
 }
 
-void RadioReceiver::setRfGain(int rfGain)
+void RadioReceiver::setRfGain(int rfGain) const
 {
     std::cout << "RF gain has been updated: " << rfGain << std::endl;
 }
 
-void RadioReceiver::ReceiverControlInterface::setMode(std::string mode)
+void RadioReceiver::ReceiverControlInterface::setMode(std::string mode) const
 {
     std::cout << "Mode has been updated: " << mode << std::endl;
 }
@@ -193,7 +206,7 @@ void RadioReceiver::ReceiverControlInterface::selectAntennaInput(int antennaInpu
     }
 }
 
-void RadioReceiver::ReceiverControlInterface::setVolume(float volume)
+void RadioReceiver::ReceiverControlInterface::setVolume(float volume) const
 {
     std::cout << "Volume has been updated: " << volume << std::endl;
 }
@@ -212,9 +225,9 @@ struct RadioTransmitter
     float microphoneImpedance=4.f;
     bool antennaTunnerStatus=true;  
 
-    void toggleVoiceMemoryUnit();
+    void toggleVoiceMemoryUnit() const;
     void toggleAntennaTunner();
-    void toggleDataManagementUnit();
+    void toggleDataManagementUnit() const;
 
     struct TransmitterControlInterface 
     {
@@ -226,10 +239,22 @@ struct RadioTransmitter
         float microphoneGain = 2.f;
         std::string mode = "AM";
 
-        void setMode(std::string modeSelection);
-        void txEnabled(bool txEnabled);
-        void enableKeyer(bool keyerEnabled);
+        void setMode(std::string modeSelection) const;
+        void txEnabled(bool txEnabled) const;
+        void enableKeyer(bool keyerEnabled) const;
     } transmitterControlInterface;
+
+    JUCE_LEAK_DETECTOR(RadioTransmitter)
+};
+
+struct RadioTransmitterWrapper
+{
+    RadioTransmitterWrapper(RadioTransmitter* ptr) : pointerToRadioTransmitter(ptr) {}
+    ~RadioTransmitterWrapper()
+    {
+        delete pointerToRadioTransmitter;
+    }
+    RadioTransmitter* pointerToRadioTransmitter = nullptr;
 };
 
 RadioTransmitter::RadioTransmitter() : maxOutputLevel(100.f), minOutputLevel(5.f)
@@ -252,7 +277,7 @@ RadioTransmitter::TransmitterControlInterface::~TransmitterControlInterface()
     std::cout << "TransmitterControlInterface has been deconstructed." << std::endl;
 }
 
-void RadioTransmitter::toggleVoiceMemoryUnit()
+void RadioTransmitter::toggleVoiceMemoryUnit() const
 {
     std::cout << "Voice Memory Unit Enabled: " << std::endl;
 }
@@ -280,22 +305,22 @@ void RadioTransmitter::toggleAntennaTunner()
     std::cout << "Antenna Tunner Status: " << antennaTunnerStatus << std::endl;
 }
 
-void RadioTransmitter::toggleDataManagementUnit()
+void RadioTransmitter::toggleDataManagementUnit() const
 {
     std::cout << "Data Management Unit Enabled: " << std::endl;
 }
 
-void RadioTransmitter::TransmitterControlInterface::setMode(std::string modeSelection)
+void RadioTransmitter::TransmitterControlInterface::setMode(std::string modeSelection) const
 {
     std::cout << "Tx Mode has been set to: " << modeSelection << std::endl;
 }
 
-void RadioTransmitter::TransmitterControlInterface::txEnabled(bool txEnabled)
+void RadioTransmitter::TransmitterControlInterface::txEnabled(bool txEnabled) const
 {
     std::cout << "Tx Enabled: " << txEnabled << std::endl;
 }
 
-void RadioTransmitter::TransmitterControlInterface::enableKeyer(bool keyerEnabled)
+void RadioTransmitter::TransmitterControlInterface::enableKeyer(bool keyerEnabled) const
 {
     std::cout << "Keyer Enabled: " << keyerEnabled << std::endl;
 }
@@ -316,9 +341,21 @@ struct PowerSupply
     std::string inputConnectorType = "IEC", 
     outputConnectorType = "Binding Post";
 
-    void enable(bool);
-    void setDisplayMetric(std::string);
+    void enable(bool) const;
+    void setDisplayMetric(std::string) const;
     void setOutputPower(int);
+
+    JUCE_LEAK_DETECTOR(PowerSupply)
+};
+
+struct PowerSupplyWrapper
+{
+    PowerSupplyWrapper(PowerSupply* ptr) : pointerToPowerSupply(ptr) {}
+    ~PowerSupplyWrapper()
+    {
+        delete pointerToPowerSupply;
+    }
+    PowerSupply* pointerToPowerSupply = nullptr;
 };
 
 PowerSupply::PowerSupply() : inputPower(110), outputPower(24), outputCurrentMax(20)
@@ -331,12 +368,12 @@ PowerSupply::~PowerSupply()
     std::cout << "PowerSupply has been deconstructed." << std::endl;
 }
 
-void PowerSupply::enable(bool powerState)
+void PowerSupply::enable(bool powerState) const
 {
     std::cout << "PowerSupply Powered On: " << powerState << std::endl;
 }
 
-void PowerSupply::setDisplayMetric(std::string displayMetric)
+void PowerSupply::setDisplayMetric(std::string displayMetric) const
 {
     std::cout << "PowerSupply Display Metric: " << displayMetric << std::endl;
 }
@@ -372,7 +409,20 @@ struct Transciever
     } powerState = PowerState::Off;
 
     void setPowerState(PowerState);
-    void enableTransmitter();
+    void enableTransmitter() const;
+
+    JUCE_LEAK_DETECTOR(Transciever)
+
+};
+
+struct TranscieverWrapper
+{
+    TranscieverWrapper(Transciever* ptr) : pointerToTransciever(ptr) {}
+    ~TranscieverWrapper()
+    {
+        delete pointerToTransciever;
+    }
+    Transciever* pointerToTransciever = nullptr;
 };
 
 Transciever::Transciever(): powerState(Transciever::PowerState::Off)
@@ -406,7 +456,7 @@ void Transciever::setPowerState(PowerState newState)
     }
 }
 
-void Transciever::enableTransmitter()
+void Transciever::enableTransmitter() const
 {
     this->tx.transmitterControlInterface.txEnabled(true);
 }
@@ -425,7 +475,19 @@ struct AmatureRadioStation
     PowerSupply primaryPowerSupply;
 
     void powerDownStation();
-    void displayPowerConsumption();
+    void displayPowerConsumption() const;
+
+    JUCE_LEAK_DETECTOR(AmatureRadioStation)
+};
+
+struct AmatureRadioStationWrapper
+{
+    AmatureRadioStationWrapper(AmatureRadioStation* ptr) : pointerToAmatureRadioStation(ptr) {}
+    ~AmatureRadioStationWrapper()
+    {
+        delete pointerToAmatureRadioStation;
+    }
+    AmatureRadioStation* pointerToAmatureRadioStation = nullptr;
 };
 
 AmatureRadioStation::AmatureRadioStation()
@@ -444,7 +506,7 @@ void AmatureRadioStation::powerDownStation()
     this->primaryPowerSupply.enable(false);
 }
 
-void AmatureRadioStation::displayPowerConsumption()
+void AmatureRadioStation::displayPowerConsumption() const
 {
     this->primaryPowerSupply.setDisplayMetric("Watts");
 }
@@ -467,49 +529,49 @@ void AmatureRadioStation::displayPowerConsumption()
 #include <iostream>
 int main()
 {
-    RadioReceiver primaryReceiver;
-    primaryReceiver.frequency = 7300.f;
-    std::cout << "Frequency has been set to the desired value: " << primaryReceiver.frequency << std::endl;
-    primaryReceiver.setFrequency(7300.f);
-    primaryReceiver.setAudioFrequencyGain(4);
-    primaryReceiver.setRfGain(5);
-    primaryReceiver.receiverControlInterface.setMode("FM");
-    primaryReceiver.receiverControlInterface.selectAntennaInput(3);
-    primaryReceiver.receiverControlInterface.setVolume(50);
+    RadioReceiverWrapper primaryReceiver( new RadioReceiver() );
+    primaryReceiver.pointerToRadioReceiver->frequency = 7300.f;
+    std::cout << "Frequency has been set to the desired value: " << primaryReceiver.pointerToRadioReceiver->frequency << std::endl;
+    primaryReceiver.pointerToRadioReceiver->setFrequency(7300.f);
+    primaryReceiver.pointerToRadioReceiver->setAudioFrequencyGain(4);
+    primaryReceiver.pointerToRadioReceiver->setRfGain(5);
+    primaryReceiver.pointerToRadioReceiver->receiverControlInterface.setMode("FM");
+    primaryReceiver.pointerToRadioReceiver->receiverControlInterface.selectAntennaInput(3);
+    primaryReceiver.pointerToRadioReceiver->receiverControlInterface.setVolume(50);
 
-    RadioTransmitter primaryTransmitter;
-    primaryTransmitter.antennaTunnerStatus = true;
-    std::cout << "Antenna Tunner Status: " << primaryTransmitter.antennaTunnerStatus << std::endl;
-    primaryTransmitter.antennaTunnerStatus = false;
-    primaryTransmitter.toggleAntennaTunner(); 
-    primaryTransmitter.toggleVoiceMemoryUnit();
-    primaryTransmitter.toggleAntennaTunner();
-    primaryTransmitter.toggleDataManagementUnit();
-    primaryTransmitter.transmitterControlInterface.setMode("USB");
-    primaryTransmitter.transmitterControlInterface.txEnabled(false);
-    primaryTransmitter.transmitterControlInterface.enableKeyer(false);
+    RadioTransmitterWrapper primaryTransmitter( new RadioTransmitter() );
+    primaryTransmitter.pointerToRadioTransmitter->antennaTunnerStatus = true;
+    std::cout << "Antenna Tunner Status: " << primaryTransmitter.pointerToRadioTransmitter->antennaTunnerStatus << std::endl;
+    primaryTransmitter.pointerToRadioTransmitter->antennaTunnerStatus = false;
+    primaryTransmitter.pointerToRadioTransmitter->toggleAntennaTunner(); 
+    primaryTransmitter.pointerToRadioTransmitter->toggleVoiceMemoryUnit();
+    primaryTransmitter.pointerToRadioTransmitter->toggleAntennaTunner();
+    primaryTransmitter.pointerToRadioTransmitter->toggleDataManagementUnit();
+    primaryTransmitter.pointerToRadioTransmitter->transmitterControlInterface.setMode("USB");
+    primaryTransmitter.pointerToRadioTransmitter->transmitterControlInterface.txEnabled(false);
+    primaryTransmitter.pointerToRadioTransmitter->transmitterControlInterface.enableKeyer(false);
 
-    PowerSupply primaryPowerSupply;
-    primaryPowerSupply.enable(true);
-    primaryPowerSupply.setDisplayMetric("Amps");
-    primaryPowerSupply.outputPower = 24;
-    std::cout << "PowerSupply Output Power: " << primaryPowerSupply.outputPower << std::endl;
-    primaryPowerSupply.setOutputPower(24);
+    PowerSupplyWrapper primaryPowerSupply( new PowerSupply() );
+    primaryPowerSupply.pointerToPowerSupply->enable(true);
+    primaryPowerSupply.pointerToPowerSupply->setDisplayMetric("Amps");
+    primaryPowerSupply.pointerToPowerSupply->outputPower = 24;
+    std::cout << "PowerSupply Output Power: " << primaryPowerSupply.pointerToPowerSupply->outputPower << std::endl;
+    primaryPowerSupply.pointerToPowerSupply->setOutputPower(24);
 
-    Transciever primaryTransciever;
-    primaryTransciever.setPowerState(Transciever::PowerState::On);
-    primaryTransciever.enableTransmitter();
-    primaryTransciever.rx.frequency = 3000.f;
-    std::cout << "Frequency has been set to the desired value: " << primaryTransciever.rx.frequency << std::endl;
-    primaryTransciever.rx.setFrequency(3000.f);
+    TranscieverWrapper primaryTransciever( new Transciever() );
+    primaryTransciever.pointerToTransciever->setPowerState(Transciever::PowerState::On);
+    primaryTransciever.pointerToTransciever->enableTransmitter();
+    primaryTransciever.pointerToTransciever->rx.frequency = 3000.f;
+    std::cout << "Frequency has been set to the desired value: " << primaryTransciever.pointerToTransciever->rx.frequency << std::endl;
+    primaryTransciever.pointerToTransciever->rx.setFrequency(3000.f);
 
 
-    AmatureRadioStation primaryAmatureRadioStation;
-    primaryAmatureRadioStation.powerDownStation();
-    primaryAmatureRadioStation.displayPowerConsumption();
-    primaryAmatureRadioStation.primaryPowerSupply.outputPower = 12;
-    std::cout << "PowerSupply Output Power: " << primaryAmatureRadioStation.primaryPowerSupply.outputPower << std::endl;
-    primaryAmatureRadioStation.primaryPowerSupply.setOutputPower(12);
+    AmatureRadioStationWrapper primaryAmatureRadioStation( new AmatureRadioStation() );
+    primaryAmatureRadioStation.pointerToAmatureRadioStation->powerDownStation();
+    primaryAmatureRadioStation.pointerToAmatureRadioStation->displayPowerConsumption();
+    primaryAmatureRadioStation.pointerToAmatureRadioStation->primaryPowerSupply.outputPower = 12;
+    std::cout << "PowerSupply Output Power: " << primaryAmatureRadioStation.pointerToAmatureRadioStation->primaryPowerSupply.outputPower << std::endl;
+    primaryAmatureRadioStation.pointerToAmatureRadioStation->primaryPowerSupply.setOutputPower(12);
 
     std::cout << "good to go!" << std::endl;
 }
