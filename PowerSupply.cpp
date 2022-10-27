@@ -25,7 +25,7 @@ void PowerSupply::setOutputPower(int newOutputPower)
 {
     while(this->outputPower < newOutputPower)
     {
-        this->outputPower += 1;
+        ++this->outputPower;
     }
     std::cout << "PowerSupply Output Power: " << this->outputPower << std::endl;
 }

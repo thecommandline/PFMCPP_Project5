@@ -38,11 +38,7 @@ void RadioTransmitter::toggleAntennaTunner()
         std::cout << "Attempting to enable Antenna Tunner" << std::endl;
         if(antennaTunnerStatus == false)
         {
-            antennaTunnerStatus = true;
-        }
-        else
-        {
-            antennaTunnerStatus = true; 
+            antennaTunnerStatus = !antennaTunnerStatus;
         }
     }
     

@@ -8,9 +8,9 @@ struct RadioTransmitter
     ~RadioTransmitter();
 
     float maxOutputLevel, minOutputLevel;
-    float antennaImpedance=50.f;
-    float microphoneImpedance=4.f;
-    bool antennaTunnerStatus=true;  
+    float antennaImpedance = 50.f;
+    float microphoneImpedance = 4.f;
+    bool antennaTunnerStatus = true;  
 
     void toggleVoiceMemoryUnit() const;
     void toggleAntennaTunner();

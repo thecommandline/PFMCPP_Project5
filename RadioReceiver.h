@@ -28,9 +28,9 @@ struct RadioReceiver
        
         enum class AntennaInputSwitch: int
         {
-            one,
-            two,
-            three,
+            One,
+            Two,
+            Three,
             END_OF_LIST
         };
 

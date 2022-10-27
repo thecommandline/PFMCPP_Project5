@@ -13,7 +13,7 @@ Transceiver::~Transceiver()
 
 void Transceiver::setPowerState(PowerState newState)
 {
-    for(int i = 0; i<2; i++)
+    for(int i = 0; i < 2; ++i)
     {
         if(i == 0)
         {

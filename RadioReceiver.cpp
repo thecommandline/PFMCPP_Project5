@@ -59,9 +59,9 @@ void RadioReceiver::ReceiverControlInterface::setMode(std::string mode) const
 
 void RadioReceiver::ReceiverControlInterface::selectAntennaInput(int antennaInputSelection)
 {
-    for(int i = 0; i < 3; i++)
+    for(int i = 0; i < 3; ++i)
     {
-        this->antennaInput = i + 1;
+        ++this->antennaInput;
         std::cout << "Antenna Switch Position: " << this->antennaInput << std::endl;
         if(this->antennaInput == antennaInputSelection)
         {

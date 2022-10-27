@@ -1,10 +1,11 @@
 #pragma once
 
-#include "RadioReceiver.h"
-#include "RadioTransmitter.h"
-#include "PowerSupply.h"
-#include "Transceiver.h"
-#include "AmatureRadioStation.h"
+struct RadioReceiver;
+struct RadioTransmitter;
+struct PowerSupply;
+struct Transceiver;
+struct AmatureRadioStation;
+
 
 struct RadioReceiverWrapper
 {
